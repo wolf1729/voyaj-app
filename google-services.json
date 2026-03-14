@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "198576187046",
+    "project_id": "voyaj-b9c91",
+    "storage_bucket": "voyaj-b9c91.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:198576187046:android:f58c3a4c75dcd16c35b667",
+        "android_client_info": {
+          "package_name": "com.voyaj.voyajapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "198576187046-fgoujei92k67t1fp9mu92qnok4vb721i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.voyaj.voyajapp",
+            "certificate_hash": "df0084fb26ab537ba7e47abb23715a732546807d"
+          }
+        },
+        {
+          "client_id": "198576187046-7f20jp2lsr3rufuka7vgkk8otddt93q5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6N9gfhpgdV1lAsSZ83FFnkv7OHfSHfdE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "198576187046-7f20jp2lsr3rufuka7vgkk8otddt93q5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
