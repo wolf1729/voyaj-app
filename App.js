@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { StyleSheet, Platform, StatusBar } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 
@@ -18,6 +19,7 @@ export default function App() {
         )}
         <ExpoStatusBar style="auto" />
       </SafeAreaView>
+      <Toast />
     </SafeAreaProvider>
   );
 }

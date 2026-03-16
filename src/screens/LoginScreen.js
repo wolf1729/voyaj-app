@@ -1,10 +1,40 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getAuth, signInWithEmailAndPassword } from '@react-native-firebase/auth';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen({ onNavigateSignup }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Please enter both email and password' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const authInstance = getAuth();
+      await signInWithEmailAndPassword(authInstance, email, password);
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Logged in successfully!' });
+    } catch (error) {
+      console.error(error);
+      let errorMessage = error.message || 'Check your email and password and try again.';
+      if (error.code === 'auth/invalid-email') {
+        errorMessage = 'That email address is invalid!';
+      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = 'This user account has been disabled.';
+      }
+      Toast.show({ type: 'error', text1: 'Login Error', text2: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -48,8 +78,16 @@ export default function LoginScreen({ onNavigateSignup }) {
             secureTextEntry
           />
 
-          <TouchableOpacity style={styles.loginButton}>
-            <Text style={styles.loginButtonText}>Login</Text>
+          <TouchableOpacity 
+            style={[styles.loginButton, loading && { opacity: 0.7 }]} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Login</Text>
+            )}
           </TouchableOpacity>
         </View>
 

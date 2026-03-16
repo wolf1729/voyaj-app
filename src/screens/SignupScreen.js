@@ -1,11 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
+import Toast from 'react-native-toast-message';
 
 export default function SignupScreen({ onNavigateLogin }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSignup = async () => {
+    if (!email.trim() || !password || !confirmPassword) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Please fill in all fields' });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Passwords do not match' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const authInstance = getAuth();
+      const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
+      
+      // Update profile with name if provided
+      if (name.trim()) {
+        await updateProfile(userCredential.user, {
+          displayName: name
+        });
+      }
+      
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Account created successfully!' });
+    } catch (error) {
+      console.error(error);
+      let errorMessage = error.message || 'Something went wrong. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'That email address is already in use!';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'That email address is invalid!';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'The password is too weak.';
+      }
+      Toast.show({ type: 'error', text1: 'Signup Error', text2: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -51,8 +95,26 @@ export default function SignupScreen({ onNavigateLogin }) {
             secureTextEntry
           />
 
-          <TouchableOpacity style={styles.signupButton}>
-            <Text style={styles.signupButtonText}>Sign up</Text>
+          <Text style={[styles.label, { marginTop: 16 }]}>Confirm Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            placeholderTextColor="#9ca3af"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+
+          <TouchableOpacity 
+            style={[styles.signupButton, loading && { opacity: 0.7 }]} 
+            onPress={handleSignup}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.signupButtonText}>Sign up</Text>
+            )}
           </TouchableOpacity>
         </View>
 
