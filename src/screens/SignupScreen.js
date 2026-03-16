@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
+
+// Configure Google Sign-in
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_WEBCLIENTID,
+  scopes: ['profile', 'email'],
+  offlineAccess: true,
+});
 
 export default function SignupScreen({ onNavigateLogin }) {
   const [name, setName] = useState('');
@@ -46,6 +54,34 @@ export default function SignupScreen({ onNavigateLogin }) {
         errorMessage = 'The password is too weak.';
       }
       Toast.show({ type: 'error', text1: 'Signup Error', text2: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const { data } = await GoogleSignin.signIn();
+      const { idToken, accessToken } = data;
+
+      const googleCredential = GoogleAuthProvider.credential(idToken, accessToken);
+      const authInstance = getAuth();
+      await signInWithCredential(authInstance, googleCredential);
+      
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Signed in with Google!' });
+    } catch (error) {
+      console.error(error);
+      let errorMessage = 'An error occurred during Google sign in';
+      if (error.code === 'SIGN_IN_CANCELLED') {
+        errorMessage = 'Sign in cancelled';
+      } else if (error.code === 'IN_PROGRESS') {
+        errorMessage = 'Sign in already in progress';
+      } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
+        errorMessage = 'Play services not available';
+      }
+      Toast.show({ type: 'error', text1: 'Google Login Failed', text2: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -124,7 +160,11 @@ export default function SignupScreen({ onNavigateLogin }) {
           <View style={styles.dividerLine} />
         </View>
 
-        <TouchableOpacity style={styles.googleButton}>
+        <TouchableOpacity 
+          style={[styles.googleButton, loading && { opacity: 0.7 }]} 
+          onPress={handleGoogleLogin}
+          disabled={loading}
+        >
           <Ionicons name="logo-google" size={20} color="#4285F4" style={styles.googleIcon} />
           <Text style={styles.googleButtonText}>Sign up with Google</Text>
         </TouchableOpacity>
