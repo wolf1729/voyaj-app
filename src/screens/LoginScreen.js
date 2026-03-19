@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -12,7 +13,7 @@ GoogleSignin.configure({
   offlineAccess: true,
 });
 
-export default function LoginScreen({ onNavigateSignup }) {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,84 +74,86 @@ export default function LoginScreen({ onNavigateSignup }) {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>V</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <KeyboardAvoidingView 
+        style={styles.container} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>V</Text>
+            </View>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to continue your adventure with Voyaj</Text>
           </View>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to continue your adventure with Voyaj</Text>
-        </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Email Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="name@example.com"
-            placeholderTextColor="#9ca3af"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={styles.form}>
+            <Text style={styles.label}>Email Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="name@example.com"
+              placeholderTextColor="#9ca3af"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-          <View style={styles.passwordHeader}>
-            <Text style={styles.label}>Password</Text>
-            <TouchableOpacity>
-              <Text style={styles.forgotPassword}>Forgot password?</Text>
+            <View style={styles.passwordHeader}>
+              <Text style={styles.label}>Password</Text>
+              <TouchableOpacity>
+                <Text style={styles.forgotPassword}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="••••••••"
+              placeholderTextColor="#9ca3af"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity 
+              style={[styles.loginButton, loading && { opacity: 0.7 }]} 
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <Text style={styles.loginButtonText}>Login</Text>
+              )}
             </TouchableOpacity>
           </View>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#9ca3af"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
           <TouchableOpacity 
-            style={[styles.loginButton, loading && { opacity: 0.7 }]} 
-            onPress={handleLogin}
+            style={[styles.googleButton, loading && { opacity: 0.7 }]} 
+            onPress={handleGoogleLogin}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.loginButtonText}>Login</Text>
-            )}
+            <Ionicons name="logo-google" size={20} color="#4285F4" style={styles.googleIcon} />
+            <Text style={styles.googleButtonText}>Sign in with Google</Text>
           </TouchableOpacity>
-        </View>
 
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
-        </View>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+              <Text style={styles.signupText}>Sign up</Text>
+            </TouchableOpacity>
+          </View>
 
-        <TouchableOpacity 
-          style={[styles.googleButton, loading && { opacity: 0.7 }]} 
-          onPress={handleGoogleLogin}
-          disabled={loading}
-        >
-          <Ionicons name="logo-google" size={20} color="#4285F4" style={styles.googleIcon} />
-          <Text style={styles.googleButtonText}>Sign in with Google</Text>
-        </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={onNavigateSignup}>
-            <Text style={styles.signupText}>Sign up</Text>
-          </TouchableOpacity>
-        </View>
-
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

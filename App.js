@@ -1,33 +1,13 @@
-import React, { useState } from 'react';
-import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
-import { StyleSheet, Platform, StatusBar } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import LoginScreen from './src/screens/LoginScreen';
-import SignupScreen from './src/screens/SignupScreen';
+import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('login');
-
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        {currentScreen === 'login' ? (
-          <LoginScreen onNavigateSignup={() => setCurrentScreen('signup')} />
-        ) : (
-          <SignupScreen onNavigateLogin={() => setCurrentScreen('login')} />
-        )}
-        <ExpoStatusBar style="auto" />
-      </SafeAreaView>
+      <AppNavigator />
       <Toast />
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    // We can remove paddingTop since SafeAreaView handles the top inset now
-  },
-});

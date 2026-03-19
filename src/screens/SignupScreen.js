@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -12,7 +13,7 @@ GoogleSignin.configure({
   offlineAccess: true,
 });
 
-export default function SignupScreen({ onNavigateLogin }) {
+export default function SignupScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,96 +89,98 @@ export default function SignupScreen({ onNavigateLogin }) {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        
-        <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Voyaj and start your adventure today</Text>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      <KeyboardAvoidingView 
+        style={styles.container} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          
+          <View style={styles.header}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Join Voyaj and start your adventure today</Text>
+          </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="John Doe"
-            placeholderTextColor="#9ca3af"
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-          />
+          <View style={styles.form}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="John Doe"
+              placeholderTextColor="#9ca3af"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+            />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Email Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="name@example.com"
-            placeholderTextColor="#9ca3af"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+            <Text style={[styles.label, { marginTop: 16 }]}>Email Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="name@example.com"
+              placeholderTextColor="#9ca3af"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#9ca3af"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+            <Text style={[styles.label, { marginTop: 16 }]}>Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="••••••••"
+              placeholderTextColor="#9ca3af"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Confirm Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#9ca3af"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
+            <Text style={[styles.label, { marginTop: 16 }]}>Confirm Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="••••••••"
+              placeholderTextColor="#9ca3af"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity 
+              style={[styles.signupButton, loading && { opacity: 0.7 }]} 
+              onPress={handleSignup}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <Text style={styles.signupButtonText}>Sign up</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
           <TouchableOpacity 
-            style={[styles.signupButton, loading && { opacity: 0.7 }]} 
-            onPress={handleSignup}
+            style={[styles.googleButton, loading && { opacity: 0.7 }]} 
+            onPress={handleGoogleLogin}
             disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.signupButtonText}>Sign up</Text>
-            )}
+            <Ionicons name="logo-google" size={20} color="#4285F4" style={styles.googleIcon} />
+            <Text style={styles.googleButtonText}>Sign up with Google</Text>
           </TouchableOpacity>
-        </View>
 
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
-        </View>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.loginText}>Login</Text>
+            </TouchableOpacity>
+          </View>
 
-        <TouchableOpacity 
-          style={[styles.googleButton, loading && { opacity: 0.7 }]} 
-          onPress={handleGoogleLogin}
-          disabled={loading}
-        >
-          <Ionicons name="logo-google" size={20} color="#4285F4" style={styles.googleIcon} />
-          <Text style={styles.googleButtonText}>Sign up with Google</Text>
-        </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={onNavigateLogin}>
-            <Text style={styles.loginText}>Login</Text>
-          </TouchableOpacity>
-        </View>
-
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
