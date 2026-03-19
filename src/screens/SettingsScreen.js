@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
-import { ArrowLeft, User, Lock, Bell, Eye, Globe, HelpCircle, FileText, Shield, LogOut, ChevronRight, ExternalLink } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { ArrowLeft, User, Lock, Bell, Eye, Globe, ExternalLink, ChevronRight, LogOut } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAuth, signOut } from '@react-native-firebase/auth';
+
+// Reusable Components
+import SettingItem from '../components/profile/SettingItem';
+import Divider from '../components/common/Divider';
 
 const SettingsScreen = ({ navigation }) => {
   const [notifications, setNotifications] = useState(true);
@@ -11,34 +15,6 @@ const SettingsScreen = ({ navigation }) => {
   const handleLogout = () => {
     signOut(getAuth());
   };
-
-  const SettingItem = ({ icon: Icon, label, value, onPress, iconBg, showChevron = true, isSwitch = false, switchValue, onSwitchChange }) => (
-    <TouchableOpacity 
-      style={styles.settingItem} 
-      onPress={onPress}
-      disabled={isSwitch}
-    >
-      <View style={styles.settingLeft}>
-        <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-          <Icon size={20} color={Icon === Eye ? '#10b981' : (Icon === Bell ? '#3b82f6' : '#f26422')} />
-        </View>
-        <Text style={styles.settingLabel}>{label}</Text>
-      </View>
-      <View style={styles.settingRight}>
-        {value && <Text style={styles.settingValue}>{value}</Text>}
-        {isSwitch ? (
-          <Switch
-            trackColor={{ false: '#e5e7eb', true: '#f26422' }}
-            thumbColor={'#ffffff'}
-            onValueChange={onSwitchChange}
-            value={switchValue}
-          />
-        ) : (
-          showChevron && <ChevronRight size={20} color="#d1d5db" />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,7 +37,7 @@ const SettingsScreen = ({ navigation }) => {
             iconBg="#fff4ef" 
             onPress={() => {}} 
           />
-          <View style={styles.divider} />
+          <Divider inset={64} />
           <SettingItem 
             icon={Lock} 
             label="Password Change" 
@@ -81,7 +57,7 @@ const SettingsScreen = ({ navigation }) => {
             switchValue={notifications}
             onSwitchChange={setNotifications}
           />
-          <View style={styles.divider} />
+          <Divider inset={64} />
           <SettingItem 
             icon={Eye} 
             label="Public Profile" 
@@ -90,7 +66,7 @@ const SettingsScreen = ({ navigation }) => {
             switchValue={publicProfile}
             onSwitchChange={setPublicProfile}
           />
-          <View style={styles.divider} />
+          <Divider inset={64} />
           <SettingItem 
             icon={Globe} 
             label="Language" 
@@ -103,24 +79,18 @@ const SettingsScreen = ({ navigation }) => {
         {/* Support & About */}
         <Text style={styles.sectionTitle}>SUPPORT & ABOUT</Text>
         <View style={styles.sectionCard}>
-          <TouchableOpacity style={styles.settingItem} onPress={() => {}}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingLabelNormal}>Help Center</Text>
-            </View>
+          <TouchableOpacity style={styles.supportItem} onPress={() => {}}>
+            <Text style={styles.supportLabel}>Help Center</Text>
             <ExternalLink size={20} color="#9ca3af" />
           </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity style={styles.settingItem} onPress={() => {}}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingLabelNormal}>Terms of Service</Text>
-            </View>
+          <Divider />
+          <TouchableOpacity style={styles.supportItem} onPress={() => {}}>
+            <Text style={styles.supportLabel}>Terms of Service</Text>
             <ChevronRight size={20} color="#d1d5db" />
           </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity style={styles.settingItem} onPress={() => {}}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingLabelNormal}>Privacy Policy</Text>
-            </View>
+          <Divider />
+          <TouchableOpacity style={styles.supportItem} onPress={() => {}}>
+            <Text style={styles.supportLabel}>Privacy Policy</Text>
             <ChevronRight size={20} color="#d1d5db" />
           </TouchableOpacity>
         </View>
@@ -192,46 +162,15 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
-  settingItem: {
+  supportItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
   },
-  settingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  settingLabelNormal: {
+  supportLabel: {
     fontSize: 16,
     color: '#374151',
-  },
-  settingRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settingValue: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginRight: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f3f4f6',
-    marginLeft: 64,
   },
   logoutButton: {
     flexDirection: 'row',
