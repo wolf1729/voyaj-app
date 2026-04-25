@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
 
 const StatBox = ({ value, label }) => (
   <View style={styles.statBox}>
@@ -11,18 +11,18 @@ const StatBox = ({ value, label }) => (
 const styles = StyleSheet.create({
   statBox: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#f26422',
+    fontWeight: "bold",
+    color: "#f26422",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 10,
-    fontWeight: '600',
-    color: '#9ca3af',
+    fontWeight: "600",
+    color: "#9ca3af",
   },
 });
 

@@ -1,45 +1,90 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import Toast from 'react-native-toast-message';
+import { Ionicons } from "@expo/vector-icons";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "@react-native-firebase/auth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+
+import api from "../utils/api";
+import { saveToken, saveUserData } from "../utils/storage";
 
 // Configure Google Sign-in
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_WEBCLIENTID,
-  scopes: ['profile', 'email'],
+  scopes: ["profile", "email"],
   offlineAccess: true,
 });
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Please enter both email and password' });
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please enter both email and password",
+      });
       return;
     }
 
     setLoading(true);
     try {
       const authInstance = getAuth();
-      await signInWithEmailAndPassword(authInstance, email, password);
-      Toast.show({ type: 'success', text1: 'Success', text2: 'Logged in successfully!' });
+      const userCredential = await signInWithEmailAndPassword(
+        authInstance,
+        email,
+        password,
+      );
+
+      // Sync with backend
+      const idToken = await userCredential.user.getIdToken();
+      const response = await api.post("/auth/login", { idToken });
+
+      if (response.data.success) {
+        await saveToken(response.data.token);
+        await saveUserData(response.data.user);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Logged in successfully!",
+        });
+      } else {
+        throw new Error("Backend login failed");
+      }
     } catch (error) {
       console.error(error);
-      let errorMessage = error.message || 'Check your email and password and try again.';
-      if (error.code === 'auth/invalid-email') {
-        errorMessage = 'That email address is invalid!';
-      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorMessage = 'Invalid email or password.';
-      } else if (error.code === 'auth/user-disabled') {
-        errorMessage = 'This user account has been disabled.';
+      let errorMessage =
+        error.message || "Check your email and password and try again.";
+      if (error.code === "auth/invalid-email") {
+        errorMessage = "That email address is invalid!";
+      } else if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        errorMessage = "Invalid email or password.";
+      } else if (error.code === "auth/user-disabled") {
+        errorMessage = "This user account has been disabled.";
       }
-      Toast.show({ type: 'error', text1: 'Login Error', text2: errorMessage });
+      Toast.show({ type: "error", text1: "Login Error", text2: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -48,45 +93,89 @@ export default function LoginScreen({ navigation }) {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
       const { data } = await GoogleSignin.signIn();
       const { idToken, accessToken } = data;
 
-      const googleCredential = GoogleAuthProvider.credential(idToken, accessToken);
+      const googleCredential = GoogleAuthProvider.credential(
+        idToken,
+        accessToken,
+      );
       const authInstance = getAuth();
-      await signInWithCredential(authInstance, googleCredential);
-      
-      Toast.show({ type: 'success', text1: 'Success', text2: 'Signed in with Google!' });
+      const userCredential = await signInWithCredential(
+        authInstance,
+        googleCredential,
+      );
+
+      // Sync with backend
+      const firebaseToken = await userCredential.user.getIdToken();
+      // First try to login, if not found, register
+      let response;
+      try {
+        response = await api.post("/auth/login", { idToken: firebaseToken });
+      } catch (err) {
+        if (err.response?.status === 404) {
+          response = await api.post("/auth/register", {
+            idToken: firebaseToken,
+            username:
+              userCredential.user.displayName ||
+              userCredential.user.email.split("@")[0],
+            img: userCredential.user.photoURL || "",
+          });
+        } else {
+          throw err;
+        }
+      }
+
+      if (response.data.success) {
+        await saveToken(response.data.token);
+        await saveUserData(response.data.user);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Signed in with Google!",
+        });
+      }
     } catch (error) {
       console.error(error);
-      let errorMessage = 'An error occurred during Google sign in';
-      if (error.code === 'SIGN_IN_CANCELLED') {
-        errorMessage = 'Sign in cancelled';
-      } else if (error.code === 'IN_PROGRESS') {
-        errorMessage = 'Sign in already in progress';
-      } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
-        errorMessage = 'Play services not available';
+      let errorMessage = "An error occurred during Google sign in";
+      if (error.code === "SIGN_IN_CANCELLED") {
+        errorMessage = "Sign in cancelled";
+      } else if (error.code === "IN_PROGRESS") {
+        errorMessage = "Sign in already in progress";
+      } else if (error.code === "PLAY_SERVICES_NOT_AVAILABLE") {
+        errorMessage = "Play services not available";
       }
-      Toast.show({ type: 'error', text1: 'Google Login Failed', text2: errorMessage });
+      Toast.show({
+        type: "error",
+        text1: "Google Login Failed",
+        text2: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-          
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>V</Text>
             </View>
             <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue your adventure with Voyaj</Text>
+            <Text style={styles.subtitle}>
+              Sign in to continue your adventure with Voyaj
+            </Text>
           </View>
 
           <View style={styles.form}>
@@ -116,8 +205,8 @@ export default function LoginScreen({ navigation }) {
               secureTextEntry
             />
 
-            <TouchableOpacity 
-              style={[styles.loginButton, loading && { opacity: 0.7 }]} 
+            <TouchableOpacity
+              style={[styles.loginButton, loading && { opacity: 0.7 }]}
               onPress={handleLogin}
               disabled={loading}
             >
@@ -135,22 +224,26 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity 
-            style={[styles.googleButton, loading && { opacity: 0.7 }]} 
+          <TouchableOpacity
+            style={[styles.googleButton, loading && { opacity: 0.7 }]}
             onPress={handleGoogleLogin}
             disabled={loading}
           >
-            <Ionicons name="logo-google" size={20} color="#4285F4" style={styles.googleIcon} />
+            <Ionicons
+              name="logo-google"
+              size={20}
+              color="#4285F4"
+              style={styles.googleIcon}
+            />
             <Text style={styles.googleButtonText}>Sign in with Google</Text>
           </TouchableOpacity>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+            <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
               <Text style={styles.signupText}>Sign up</Text>
             </TouchableOpacity>
           </View>
-
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -160,109 +253,109 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
   },
   scrollContainer: {
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 60,
     paddingBottom: 40,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   logoContainer: {
     width: 60,
     height: 60,
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
   },
   logoText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontWeight: "bold",
+    color: "#111827",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 15,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: "#6b7280",
+    textAlign: "center",
   },
   form: {
     marginBottom: 24,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: "600",
+    color: "#374151",
     marginBottom: 8,
   },
   passwordHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
     marginTop: 16,
   },
   forgotPassword: {
     fontSize: 14,
-    color: '#2563eb',
-    fontWeight: '500',
+    color: "#2563eb",
+    fontWeight: "500",
   },
   input: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#111827',
+    color: "#111827",
   },
   loginButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
     borderRadius: 12,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 24,
   },
   loginButtonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 24,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: "#e5e7eb",
   },
   dividerText: {
     marginHorizontal: 16,
-    color: '#9ca3af',
+    color: "#9ca3af",
     fontSize: 14,
   },
   googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
     borderRadius: 12,
     paddingVertical: 16,
     marginBottom: 32,
@@ -271,23 +364,23 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   googleButtonText: {
-    color: '#374151',
+    color: "#374151",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 'auto',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: "auto",
   },
   footerText: {
-    color: '#6b7280',
+    color: "#6b7280",
     fontSize: 15,
   },
   signupText: {
-    color: '#2563eb',
+    color: "#2563eb",
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

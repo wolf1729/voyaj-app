@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
-import LoginScreen from '../screens/LoginScreen';
-import SignupScreen from '../screens/SignupScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import MainTabNavigator from './MainTabNavigator';
+import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React, { useState, useEffect } from "react";
+
+import MainTabNavigator from "./MainTabNavigator";
+import LoginScreen from "../screens/LoginScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import SignupScreen from "../screens/SignupScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -20,7 +21,7 @@ const AppNavigator = () => {
       if (initializing) setInitializing(false);
     });
     return subscriber; // unsubscribe on unmount
-  }, []);
+  }, [initializing]);
 
   if (initializing) return null;
 
