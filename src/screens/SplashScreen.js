@@ -1,9 +1,9 @@
 import { Image } from "expo-image";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 
 const SplashScreen = () => {
-  const fadeAnim = new Animated.Value(0);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
