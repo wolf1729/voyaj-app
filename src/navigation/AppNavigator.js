@@ -7,11 +7,13 @@ import MainTabNavigator from "./MainTabNavigator";
 import LoginScreen from "../screens/LoginScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import SignupScreen from "../screens/SignupScreen";
+import SplashScreen from "../screens/SplashScreen";
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const [initializing, setInitializing] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -20,10 +22,21 @@ const AppNavigator = () => {
       setUser(userState);
       if (initializing) setInitializing(false);
     });
-    return subscriber; // unsubscribe on unmount
+
+    // Ensure splash screen shows for at least 2 seconds
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+
+    return () => {
+      subscriber();
+      clearTimeout(timer);
+    };
   }, [initializing]);
 
-  if (initializing) return null;
+  if (initializing || showSplash) {
+    return <SplashScreen />;
+  }
 
   return (
     <NavigationContainer>
