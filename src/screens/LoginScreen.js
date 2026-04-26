@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -17,10 +16,12 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+import VoyajLogo from "../components/VoyajLogo";
 import api from "../utils/api";
 import { saveToken, saveUserData } from "../utils/storage";
 
@@ -169,9 +170,7 @@ export default function LoginScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>V</Text>
-            </View>
+            <VoyajLogo />
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subtitle}>
               Sign in to continue your adventure with Voyaj
@@ -229,10 +228,10 @@ export default function LoginScreen({ navigation }) {
             onPress={handleGoogleLogin}
             disabled={loading}
           >
-            <Ionicons
-              name="logo-google"
-              size={20}
-              color="#4285F4"
+            <Image
+              source={{
+                uri: "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png",
+              }}
               style={styles.googleIcon}
             />
             <Text style={styles.googleButtonText}>Sign in with Google</Text>
@@ -266,20 +265,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 40,
   },
-  logoContainer: {
-    width: 60,
-    height: 60,
-    backgroundColor: "#2563eb",
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  logoText: {
-    color: "#ffffff",
-    fontSize: 32,
-    fontWeight: "bold",
-  },
+
   title: {
     fontSize: 28,
     fontWeight: "bold",
@@ -361,6 +347,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   googleIcon: {
+    width: 20,
+    height: 20,
     marginRight: 12,
   },
   googleButtonText: {

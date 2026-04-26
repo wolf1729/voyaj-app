@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -7,7 +6,7 @@ import {
   signInWithCredential,
 } from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -18,10 +17,12 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+import VoyajLogo from "../components/VoyajLogo";
 import api from "../utils/api";
 import { saveToken, saveUserData } from "../utils/storage";
 
@@ -187,6 +188,7 @@ export default function SignupScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
+            <VoyajLogo />
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>
               Join Voyaj and start your adventure today
@@ -261,10 +263,10 @@ export default function SignupScreen({ navigation }) {
             onPress={handleGoogleLogin}
             disabled={loading}
           >
-            <Ionicons
-              name="logo-google"
-              size={20}
-              color="#4285F4"
+            <Image
+              source={{
+                uri: "https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png",
+              }}
               style={styles.googleIcon}
             />
             <Text style={styles.googleButtonText}>Sign up with Google</Text>
@@ -366,6 +368,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   googleIcon: {
+    width: 20,
+    height: 20,
     marginRight: 12,
   },
   googleButtonText: {
