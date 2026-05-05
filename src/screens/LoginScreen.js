@@ -14,7 +14,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   ActivityIndicator,
   Image,
 } from "react-native";
@@ -36,6 +35,8 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
@@ -56,7 +57,6 @@ export default function LoginScreen({ navigation }) {
         password,
       );
 
-      // Sync with backend
       const idToken = await userCredential.user.getIdToken();
       const response = await api.post("/auth/login", { idToken });
 
@@ -110,9 +110,7 @@ export default function LoginScreen({ navigation }) {
         googleCredential,
       );
 
-      // Sync with backend
       const firebaseToken = await userCredential.user.getIdToken();
-      // First try to login, if not found, register
       let response;
       try {
         response = await api.post("/auth/login", { idToken: firebaseToken });
@@ -160,73 +158,90 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.header}>
-            <VoyajLogo />
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>
-              Sign in to continue your adventure with Voyaj
+        {/* Brand Header */}
+        <View style={styles.brandHeader}>
+          <VoyajLogo color="#111827" style={styles.logo} />
+          <Text style={styles.tagline}>Explore the world, effortlessly.</Text>
+        </View>
+
+        {/* Main Content */}
+        <View style={styles.content}>
+          {/* Welcome Text */}
+          <View style={styles.welcomeBlock}>
+            <Text style={styles.heading}>Welcome back</Text>
+            <Text style={styles.subheading}>
+              Sign in to continue your journey
             </Text>
           </View>
 
-          <View style={styles.form}>
-            <Text style={styles.label}>Email Address</Text>
+          {/* Email Field */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Email address</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, emailFocused && styles.inputFocused]}
               placeholder="name@example.com"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#c4c9d4"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              onFocus={() => setEmailFocused(true)}
+              onBlur={() => setEmailFocused(false)}
             />
+          </View>
 
-            <View style={styles.passwordHeader}>
+          {/* Password Field */}
+          <View style={styles.fieldGroup}>
+            <View style={styles.labelRow}>
               <Text style={styles.label}>Password</Text>
               <TouchableOpacity>
-                <Text style={styles.forgotPassword}>Forgot password?</Text>
+                <Text style={styles.forgotText}>Forgot password?</Text>
               </TouchableOpacity>
             </View>
             <TextInput
-              style={styles.input}
+              style={[styles.input, passwordFocused && styles.inputFocused]}
               placeholder="••••••••"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#c4c9d4"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
             />
-
-            <TouchableOpacity
-              style={[styles.loginButton, loading && { opacity: 0.7 }]}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text style={styles.loginButtonText}>Login</Text>
-              )}
-            </TouchableOpacity>
           </View>
 
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
+          {/* Sign In Button */}
           <TouchableOpacity
-            style={[styles.googleButton, loading && { opacity: 0.7 }]}
+            style={[styles.loginButton, loading && { opacity: 0.7 }]}
+            onPress={handleLogin}
+            disabled={loading}
+            activeOpacity={0.88}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Google Button */}
+          <TouchableOpacity
+            style={[styles.googleButton, loading && { opacity: 0.6 }]}
             onPress={handleGoogleLogin}
             disabled={loading}
+            activeOpacity={0.8}
           >
             <Image
               source={{
@@ -234,141 +249,196 @@ export default function LoginScreen({ navigation }) {
               }}
               style={styles.googleIcon}
             />
-            <Text style={styles.googleButtonText}>Sign in with Google</Text>
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>
+        </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-              <Text style={styles.signupText}>Sign up</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>{"Don't have an account? "}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
+            <Text style={styles.signupText}>Sign up</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
-    justifyContent: "center",
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 40,
+  container: {
+    flex: 1,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    paddingBottom: 24,
+    justifyContent: "space-between",
   },
 
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#111827",
+  // Brand Header
+  brandHeader: {
+    alignItems: "center",
+    paddingTop: 8,
+  },
+  logo: {
+    fontSize: 52,
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 15,
-    color: "#6b7280",
+  tagline: {
+    fontSize: 13,
+    color: "#b0b7c3",
+    letterSpacing: 0.4,
     textAlign: "center",
   },
-  form: {
-    marginBottom: 24,
+
+  // Main content block
+  content: {
+    flex: 1,
+    justifyContent: "center",
   },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
+
+  // Welcome Block
+  welcomeBlock: {
+    marginBottom: 28,
   },
-  passwordHeader: {
+  heading: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#0f172a",
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  subheading: {
+    fontSize: 15,
+    color: "#94a3b8",
+    fontWeight: "400",
+  },
+
+  // Fields
+  fieldGroup: {
+    marginBottom: 18,
+  },
+  labelRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
-    marginTop: 16,
   },
-  forgotPassword: {
-    fontSize: 14,
-    color: "#2563eb",
-    fontWeight: "500",
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+    letterSpacing: 0.1,
   },
   input: {
-    backgroundColor: "#f9fafb",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    borderRadius: 14,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: "#111827",
+    paddingVertical: 15,
+    fontSize: 15,
+    color: "#0f172a",
   },
+  inputFocused: {
+    borderColor: "#f26422",
+    backgroundColor: "#ffffff",
+    shadowColor: "#f26422",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  forgotText: {
+    fontSize: 13,
+    color: "#f26422",
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+
+  // Login Button
   loginButton: {
-    backgroundColor: "#2563eb",
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: "#f26422",
+    borderRadius: 14,
+    paddingVertical: 17,
     alignItems: "center",
-    marginTop: 24,
+    marginTop: 8,
+    marginBottom: 24,
+    shadowColor: "#f26422",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    elevation: 6,
   },
   loginButtonText: {
     color: "#ffffff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
-  dividerContainer: {
+
+  // Divider
+  divider: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 18,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: "#f1f5f9",
   },
   dividerText: {
-    marginHorizontal: 16,
-    color: "#9ca3af",
-    fontSize: 14,
+    marginHorizontal: 14,
+    color: "#94a3b8",
+    fontSize: 13,
+    fontWeight: "500",
   },
+
+  // Google Button
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginBottom: 32,
+    borderWidth: 1.5,
+    borderColor: "#e2e8f0",
+    borderRadius: 14,
+    paddingVertical: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
   },
   googleIcon: {
     width: 20,
     height: 20,
-    marginRight: 12,
+    marginRight: 10,
   },
   googleButtonText: {
-    color: "#374151",
-    fontSize: 16,
+    color: "#1e293b",
+    fontSize: 15,
     fontWeight: "600",
   },
+
+  // Footer
   footer: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: "auto",
+    paddingBottom: 4,
   },
   footerText: {
-    color: "#6b7280",
-    fontSize: 15,
+    color: "#94a3b8",
+    fontSize: 14,
   },
   signupText: {
-    color: "#2563eb",
-    fontSize: 15,
-    fontWeight: "bold",
+    color: "#f26422",
+    fontSize: 14,
+    fontWeight: "700",
   },
 });

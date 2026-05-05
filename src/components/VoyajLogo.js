@@ -6,9 +6,9 @@ import { Text, StyleSheet } from "react-native";
 
 /**
  * Branded "Voyaj." wordmark in Playfair Display Bold.
- * Falls back to a system serif until the font loads.
+ * Pass `color` prop for dark/light backgrounds. Falls back to system serif until font loads.
  */
-export default function VoyajLogo({ style }) {
+export default function VoyajLogo({ style, color = "#111827" }) {
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_700Bold,
   });
@@ -17,6 +17,7 @@ export default function VoyajLogo({ style }) {
     <Text
       style={[
         styles.logo,
+        { color },
         fontsLoaded ? styles.playfair : styles.fallback,
         style,
       ]}
@@ -29,8 +30,7 @@ export default function VoyajLogo({ style }) {
 const styles = StyleSheet.create({
   logo: {
     fontSize: 40,
-    color: "#111827",
-    marginBottom: 24,
+    marginBottom: 8,
   },
   playfair: {
     fontFamily: "PlayfairDisplay_700Bold",
